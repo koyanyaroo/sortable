@@ -44,6 +44,27 @@ window.livewire.directive('sortable-group', (el, directive, component) => {
 })
 
 window.livewire.directive('sortable', (el, directive, component) => {
+
+    // element: HTMLElement<any>
+    // classesToPrevent: Array<string>
+    const isPrevented = (element, classesToPrevent) => {
+        let currentElem = element;
+        let isParent = false;
+
+        while (currentElem) {
+            const hasClass = Array.from(currentElem.classList).some((cls) => classesToPrevent.includes(cls));
+            if (hasClass) {
+                isParent = true;
+                currentElem = undefined;
+            } else {
+                currentElem = currentElem.parentElement;
+            }
+        }
+
+        return isParent;
+    }
+
+
     // Only fire this handler on the "root" directive.
     if (directive.modifiers.length > 0) return
 
@@ -65,5 +86,13 @@ window.livewire.directive('sortable', (el, directive, component) => {
 
             component.call(directive.method, items)
         }, 1)
+    })
+
+    sortable.on('drag:start', (event) => {
+        const currentTarget = event.originalEvent.target;
+
+        if (isPrevented(currentTarget, ['prevent-drag'])) {
+            event.cancel();
+        }
     })
 })
